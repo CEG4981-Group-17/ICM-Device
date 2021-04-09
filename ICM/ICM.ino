@@ -84,7 +84,7 @@ void lock_LED_on() {
 }
 
 void lock_LED_off() {
-  digitalWrite(LOCK_LED_PIN, HIGH);
+  digitalWrite(LOCK_LED_PIN, LOW);
 }
 
 void setLocked() {
