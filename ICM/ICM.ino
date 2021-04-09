@@ -1,3 +1,6 @@
+// CEG4981 TEAM PROJECTS II GROUP 17
+// ICM device code
+
 // reference: https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/
 #define SERVICE_UUID        "b3a9b76b-e3cc-46cd-adc7-ceeba9977b0f"
 #define LOCK_UUID           "d1dcac5b-8961-4917-ac9d-b59b36351594"
@@ -6,15 +9,22 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 
+#define LOCK_MECH_PIN 12
+#define LOCK_LED_PIN  13
+
 BLECharacteristic* lock_charact = 0;
-bool locked = false;
+bool locked = true;
 
 void setup() {
   Serial.begin(115200);
   Serial.println("ICM booting");
-  Serial.println("initializing bluetooth service");
+
+  // setup our pins
+  pinMode(LOCK_MECH_PIN, OUTPUT);
+  pinMode(LOCK_LED_PIN, OUTPUT);
   
   // initialize bluetooth
+  Serial.println("initializing bluetooth service");
   BLEDevice::init("ICM");
   BLEServer* server = BLEDevice::createServer();
   BLEService* service = server->createService(SERVICE_UUID);
@@ -23,6 +33,7 @@ void setup() {
   lock_charact = service->createCharacteristic(LOCK_UUID,
                               BLECharacteristic::PROPERTY_READ |
                               BLECharacteristic::PROPERTY_WRITE);
+  locked = true; // true at first so locking mechanism is forced to unlock
   setUnlocked();
 
   // make our device ready to pair
@@ -38,14 +49,58 @@ void setup() {
 
 void loop() {
   delay(2000);
+  if(recievedUnlock()) {
+    setLocked();
+  } else if(recievedlock()) {
+    setUnlocked();
+  }
+  
+  // TODO: motor control
+  // TODO: mail detection
+  // TODO: door detection
+  // TODO: flag detection
+}
+
+bool recievedUnlock() {
+  // check if the bluetooth value changed
+  return locked && lock_charact->getValue() == "unlocked";
+}
+
+bool recievedlock() {
+  // check if the bluetooth value changed
+  return !locked && lock_charact->getValue() == "locked";
+}
+
+void lock_mech_on() {
+  // TODO turn on lock mechanism
+}
+
+void lock_mech_off() {
+  // TODO turn off lock mechanism
+}
+
+void lock_LED_on() {
+  digitalWrite(LOCK_LED_PIN, HIGH);
+}
+
+void lock_LED_off() {
+  digitalWrite(LOCK_LED_PIN, HIGH);
 }
 
 void setLocked() {
-  lock_charact->setValue("true");
+  bool prev_locked = locked;
   locked = true;
+
+  lock_charact->setValue("locked");
+  lock_LED_on();
+  if(prev_locked != locked) lock_mech_on();
 }
 
 void setUnlocked() {
-  lock_charact->setValue("false");
+  bool prev_locked = locked;
   locked = false;
+  
+  lock_charact->setValue("unlocked");
+  lock_LED_off();
+  if(prev_locked != locked) lock_mech_off();
 }
