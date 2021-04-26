@@ -9,8 +9,11 @@
 #include <BLEUtils.h>
 #include <BLEServer.h>
 
-#define LOCK_MECH_PIN 12
+#define MOTOR_ON_TIME 250
+
 #define LOCK_LED_PIN  13
+#define MOTOR_IN1     5
+#define MOTOR_IN2     15
 
 BLECharacteristic* lock_charact = 0;
 bool locked = true;
@@ -20,10 +23,12 @@ void setup() {
   Serial.println("ICM booting");
 
   // setup our pins
-  pinMode(LOCK_MECH_PIN, OUTPUT);
   pinMode(LOCK_LED_PIN, OUTPUT);
+  pinMode(MOTOR_IN1, OUTPUT);
+  pinMode(MOTOR_IN2, OUTPUT);
   
   // initialize bluetooth
+  /*
   Serial.println("initializing bluetooth service");
   BLEDevice::init("ICM");
   BLEServer* server = BLEDevice::createServer();
@@ -33,8 +38,6 @@ void setup() {
   lock_charact = service->createCharacteristic(LOCK_UUID,
                               BLECharacteristic::PROPERTY_READ |
                               BLECharacteristic::PROPERTY_WRITE);
-  locked = true; // true at first so locking mechanism is forced to unlock
-  setUnlocked();
 
   // make our device ready to pair
   service->start();
@@ -44,18 +47,26 @@ void setup() {
   advertising->setMinPreferred(0x06); // helps with iPhone connections
   advertising->setMaxPreferred(0x12);
   BLEDevice::startAdvertising();
+  */
+
+  locked = true; // true at first so locking mechanism is forced to unlock
+  setUnlocked();
   Serial.println("ICM finished booting");
 }
 
 void loop() {
-  delay(2000);
+  /*
   if(recievedUnlock()) {
     setLocked();
   } else if(recievedlock()) {
     setUnlocked();
-  }
+  }*/
+
+  setLocked();
+  delay(2000);
+  setUnlocked();
+  delay(2000);
   
-  // TODO: motor control
   // TODO: mail detection
   // TODO: door detection
   // TODO: flag detection
@@ -72,11 +83,19 @@ bool recievedlock() {
 }
 
 void lock_mech_on() {
-  // TODO turn on lock mechanism
+  digitalWrite(MOTOR_IN1,LOW);
+  digitalWrite(MOTOR_IN2,HIGH);
+  delay(MOTOR_ON_TIME);
+  digitalWrite(MOTOR_IN1,LOW);
+  digitalWrite(MOTOR_IN2,LOW);
 }
 
 void lock_mech_off() {
-  // TODO turn off lock mechanism
+  digitalWrite(MOTOR_IN1,HIGH);
+  digitalWrite(MOTOR_IN2,LOW);
+  delay(MOTOR_ON_TIME);
+  digitalWrite(MOTOR_IN1,LOW);
+  digitalWrite(MOTOR_IN2,LOW);
 }
 
 void lock_LED_on() {
@@ -91,7 +110,7 @@ void setLocked() {
   bool prev_locked = locked;
   locked = true;
 
-  lock_charact->setValue("locked");
+  //lock_charact->setValue("locked");
   lock_LED_on();
   if(prev_locked != locked) lock_mech_on();
 }
@@ -100,7 +119,8 @@ void setUnlocked() {
   bool prev_locked = locked;
   locked = false;
   
-  lock_charact->setValue("unlocked");
+  //lock_charact->setValue("unlocked");
   lock_LED_off();
+  
   if(prev_locked != locked) lock_mech_off();
 }
