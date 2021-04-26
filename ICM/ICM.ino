@@ -1,13 +1,13 @@
 // CEG4981 TEAM PROJECTS II GROUP 17
 // ICM device code
 
-// reference: https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/
-#define SERVICE_UUID        "b3a9b76b-e3cc-46cd-adc7-ceeba9977b0f"
-#define LOCK_UUID           "d1dcac5b-8961-4917-ac9d-b59b36351594"
-
 #include <BLEDevice.h>
 #include <BLEUtils.h>
 #include <BLEServer.h>
+
+// reference: https://randomnerdtutorials.com/esp32-bluetooth-low-energy-ble-arduino-ide/
+#define SERVICE_UUID        "b3a9b76b-e3cc-46cd-adc7-ceeba9977b0f"
+#define LOCK_UUID           "d1dcac5b-8961-4917-ac9d-b59b36351594"
 
 #define MOTOR_ON_TIME 250
 
@@ -65,7 +65,7 @@ void loop() {
   setLocked();
   delay(2000);
   setUnlocked();
-  delay(2000);
+  delay(4000);
   
   // TODO: mail detection
   // TODO: door detection
